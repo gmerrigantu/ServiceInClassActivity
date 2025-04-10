@@ -9,6 +9,8 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.Message
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 
@@ -50,13 +52,27 @@ class MainActivity : AppCompatActivity() {
             serviceConnection,
             BIND_AUTO_CREATE
         )
+    }
 
-        findViewById<Button>(R.id.startButton).setOnClickListener {
-            timerBinder.start(10)
-        }
-        
-        findViewById<Button>(R.id.stopButton).setOnClickListener {
-            timerBinder.stop()
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_start -> {
+                timerBinder.start(10)
+                true
+            }
+
+            R.id.action_stop -> {
+                timerBinder.stop()
+                true
+            }
+
+
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
