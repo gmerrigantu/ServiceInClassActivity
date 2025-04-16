@@ -1,7 +1,9 @@
 package edu.temple.myapplication
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
@@ -14,7 +16,11 @@ class TimerService : Service() {
 
     private var timerHandler : Handler? = null
 
+    private lateinit var sharedPreferences: SharedPreferences
+
     lateinit var t: TimerThread
+
+    var currentSeconds: Int = 0
 
     private var paused = false
 
@@ -23,6 +29,8 @@ class TimerService : Service() {
         // Check if Timer is already running
         val isRunning: Boolean
             get() = this@TimerService.isRunning
+
+
 
         // Check if Timer is paused
         val paused: Boolean
@@ -63,6 +71,8 @@ class TimerService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        sharedPreferences = getSharedPreferences("timer_prefs", Context.MODE_PRIVATE)
+
         Log.d("TimerService status", "Created")
     }
 
@@ -71,7 +81,10 @@ class TimerService : Service() {
     }
 
     fun start(startValue: Int) {
-        t = TimerThread(startValue)
+        Log.d("Current Time", getCurrentTime().toString())
+        if (getCurrentTime() != null && getCurrentTime() != 0) {
+            t = TimerThread(getCurrentTime())
+        } else t = TimerThread(startValue)
         t.start()
     }
 
@@ -87,9 +100,11 @@ class TimerService : Service() {
         override fun run() {
             isRunning = true
             try {
-                for (i in startValue downTo 1)  {
+                for (i in startValue downTo 0)  {
                     Log.d("Countdown", i.toString())
 
+                    currentSeconds = i
+                    saveCurrentTime()
                     timerHandler?.sendEmptyMessage(i)
 
                     while (paused);
@@ -118,6 +133,16 @@ class TimerService : Service() {
         super.onDestroy()
 
         Log.d("TimerService status", "Destroyed")
+    }
+
+    private fun saveCurrentTime() {
+        val editor = sharedPreferences.edit()
+        editor.putInt("currentSeconds", currentSeconds)
+        editor.apply()
+    }
+
+    private fun getCurrentTime() : Int{
+        return sharedPreferences.getInt("currentSeconds", 0)
     }
 
 
